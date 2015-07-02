@@ -51,6 +51,10 @@ Rex::Commands::task("get_password", sub {
 
 Trocla - Interact with trocla for password management.
 
+=head1 DESCRIPTION
+
+Trocla is a tool to manage your passwords on a central server. You can generate passwords on the fly and query trocla during configuration management runs. Trocla will store your passwords in a secure way. See L<https://github.com/duritong/trocla>.
+
 =head1 SYNOPSIS
 
  use Trocla;
