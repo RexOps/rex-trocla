@@ -1,0 +1,8 @@
+Name: Trocla
+Description: Access Trocla information
+License: Apache 2.0
+Author: FILIADATA GmbH
+
+PerlRequire:
+  - Moose
+
