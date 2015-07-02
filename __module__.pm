@@ -29,9 +29,18 @@ Rex::Commands::task("get_password", sub {
   my $key = $param->{password};
   my $format = $param->{format};
 
-  my $out = run "trocla get '$key' $format";
+  if(ref $key eq "ARRAY") {
+    my $ret = {};
+    for my $k (@{ $key }) {
+      $ret->{$k} = run "trocla get '$k' $format";
+    }
+    return $ret;
+  }
+  else {
+    my $out = run "trocla get '$key' $format";
+    return $out;
+  }
 
-  return $out;
 });
 
 1;
