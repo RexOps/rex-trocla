@@ -24,7 +24,7 @@ sub get {
   return $ret;
 }
 
-task "get_password", sub {
+Rex::Commands::task("get_password", sub {
   my $param = shift;
   my $key = $param->{password};
   my $format = $param->{format};
@@ -32,7 +32,7 @@ task "get_password", sub {
   my $out = run "trocla get '$key' $format";
 
   return $out;
-};
+});
 
 1;
 
