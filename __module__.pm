@@ -35,12 +35,12 @@ Rex::Commands::task("get_password", sub {
   if(ref $key eq "ARRAY") {
     my $ret = {};
     for my $k (@{ $key }) {
-      $ret->{$k} = run "trocla get '$k' $format";
+      $ret->{$k} = run "/usr/local/bin/trocla get '$k' $format";
     }
     return $ret;
   }
   else {
-    my $out = run "trocla get '$key' $format";
+    my $out = run "/usr/local/bin/trocla get '$key' $format";
     return $out;
   }
 
