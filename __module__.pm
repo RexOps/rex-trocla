@@ -20,11 +20,14 @@ sub get {
   my ($self, $key, $format) = @_;
   $format ||= "plain";
 
+  print "trocla->get($key, $format)\n";
+
   my $ret = Rex::Commands::run_task("get_password", on => $self->host, params => { password => $key, format => $format });
   return $ret;
 }
 
 Rex::Commands::task("get_password", sub {
+  print "trocla->get_password()\n";
   my $param = shift;
   my $key = $param->{password};
   my $format = $param->{format};
