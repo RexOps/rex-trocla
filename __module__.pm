@@ -22,7 +22,7 @@ sub get {
 
   print "trocla->get($key, $format)\n";
 
-  my $ret = Rex::Commands::run_task("get_password", on => $self->host, params => { password => $key, format => $format });
+  my $ret = Rex::Commands::run_task("Trocla:get_password", on => $self->host, params => { password => $key, format => $format });
   return $ret;
 }
 
