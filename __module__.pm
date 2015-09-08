@@ -32,17 +32,23 @@ Rex::Commands::task("get_password", sub {
   my $key = $param->{password};
   my $format = $param->{format};
 
-  if(ref $key eq "ARRAY") {
-    my $ret = {};
-    for my $k (@{ $key }) {
-      $ret->{$k} = run "/usr/local/bin/trocla get '$k' $format";
+  my $ret;
+  sudo sub {
+
+    if(ref $key eq "ARRAY") {
+      $ret = {};
+      for my $k (@{ $key }) {
+        $ret->{$k} = run "/usr/local/bin/trocla get '$k' $format";
+      }
     }
-    return $ret;
-  }
-  else {
-    my $out = run "/usr/local/bin/trocla get '$key' $format";
-    return $out;
-  }
+    else {
+      my $out = run "/usr/local/bin/trocla get '$key' $format";
+      $ret = $out;
+    }
+
+  };
+
+  return $ret;
 
 });
 
