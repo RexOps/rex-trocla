@@ -12,8 +12,13 @@ use Rex::Commands::Run;
 require Rex::Commands;
 
 has host => (
-  is => 'ro',
+  is      => 'ro',
   default => sub { "<local>" },
+);
+
+has trocla_db_file => (
+  is      => 'ro',
+  default => sub { "/var/lib/trocla/data.yaml" },
 );
 
 sub get {
@@ -23,6 +28,43 @@ sub get {
   my $ret = Rex::Commands::run_task("Trocla:get_password", on => $self->host, params => { password => $key, format => $format });
   return $ret;
 }
+
+sub mget {
+  my ($self, $regexp) = @_;
+  my $keys = $self->keys;
+
+  my @query;
+  for my $k (@{ $keys }) {
+    if($k =~ $regexp) {
+      push @query, $k;
+    }
+  }
+
+  return $self->get(\@query);
+}
+
+sub keys {
+  my ($self) = @_;
+  my $ret = Rex::Commands::run_task("Trocla:list_keys", on => $self->host, params => { file => $self->trocla_db_file });
+  return $ret;
+}
+
+Rex::Commands::task("list_keys", sub {
+  my $param = shift;
+  my $file  = $param->{file};
+
+  my $ret = [];
+
+  sudo sub {
+    my @out = run "grep '^  [a-z]' $file";
+    for my $line (@out) {
+      $line =~ s/[\s:]//gms;
+      push @{ $ret }, $line;
+    }
+  };
+
+  return $ret;
+});
 
 Rex::Commands::task("get_password", sub {
   my $param = shift;
