@@ -9,6 +9,8 @@ package Trocla;
 use Moose;
 
 use Rex::Commands::Run;
+use Rex::Commands::File;
+use YAML;
 require Rex::Commands;
 
 has host => (
@@ -56,11 +58,9 @@ Rex::Commands::task("list_keys", sub {
   my $ret = [];
 
   sudo sub {
-    my @out = run "grep '^  [a-z]' $file";
-    for my $line (@out) {
-      $line =~ s/[\s:]//gms;
-      push @{ $ret }, $line;
-    }
+    my $file_content = cat $file;
+    my $ref = YAML::Load($file_content . "\n");
+    $ret = [ CORE::keys(%{ $ref }) ];
   };
 
   return $ret;
