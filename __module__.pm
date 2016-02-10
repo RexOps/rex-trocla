@@ -51,6 +51,41 @@ sub keys {
   return $ret;
 }
 
+sub create {
+  my ($self, $name, $format, $options) = @_;
+  my $ret = Rex::Commands::run_task("Trocla:create_key", on => $self->host, params => { name => $name, format => $format, options => $options });
+}
+
+Rex::Commands::task("create_key", sub {
+  my $param = shift;
+  
+  my $name = $param->{name};
+  my $format = $param->{format} || "plain";
+  my $options = $param->{options} || { format => "alphanumeric" };
+  
+  my $cmd = "/usr/local/bin/trocla create '$name' $format";
+  
+  if($options) {
+    $cmd .= " '";
+    for my $opt (CORE::keys(%{$options})) {
+      $cmd .= "$opt: " . $options->{$opt} . "\n";
+    }
+    
+    $cmd .= "'";
+  }
+  
+  my $out;
+  sudo sub {
+    $out = run $cmd;
+  };
+  
+  if($? != 0) {
+    die "Error creating trocla key: $name.\nOUT: $out\n";
+  }
+  
+  return $out;
+});
+
 Rex::Commands::task("list_keys", sub {
   my $param = shift;
   my $file  = $param->{file};
