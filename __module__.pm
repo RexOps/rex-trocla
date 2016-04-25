@@ -18,9 +18,9 @@ has host => (
   default => sub { "<local>" },
 );
 
-has trocla_db_file => (
+has trocla_config_file => (
   is      => 'ro',
-  default => sub { "/var/lib/trocla/data.yaml" },
+  default => sub { "/etc/troclarc.yaml" },
 );
 
 sub get {
@@ -47,7 +47,7 @@ sub mget {
 
 sub keys {
   my ($self) = @_;
-  my $ret = Rex::Commands::run_task("Trocla:list_keys", on => $self->host, params => { file => $self->trocla_db_file });
+  my $ret = Rex::Commands::run_task("Trocla:list_keys", on => $self->host, params => { file => $self->trocla_config_file });
   return $ret;
 }
 
@@ -63,7 +63,7 @@ Rex::Commands::task("create_key", sub {
   my $format = $param->{format} || "plain";
   my $options = $param->{options} || { format => "alphanumeric" };
   
-  my $cmd = "/usr/local/bin/trocla create '$name' $format";
+  my $cmd = "trocla create '$name' $format";
   
   if($options) {
     $cmd .= " '";
@@ -95,7 +95,21 @@ Rex::Commands::task("list_keys", sub {
   sudo sub {
     my $file_content = cat $file;
     my $ref = YAML::Load($file_content . "\n");
-    $ret = [ CORE::keys(%{ $ref }) ];
+    if($ref->{store_options}->{adapter} eq ":Sequel") {
+      my ($host, $port) = ($ref->{store_options}->{adapter_options}->{":db"} =~ m/:\/\/([^:]+):(\d+)/);
+      my $user = $ref->{store_options}->{adapter_options}->{":user"};
+      my $password = $ref->{store_options}->{adapter_options}->{":password"};
+      my $schema = $ref->{store_options}->{adapter_options}->{":database"};
+      my $table = $ref->{store_options}->{adapter_options}->{":table"};
+
+      my @lines = run "echo 'select from_base64(k) from $table' | mysql -h$host -P$port -u$user '-p$password' $schema";
+      $ret = [@lines];
+    }
+    elsif($ref->{store_options}->{adapter} eq "YAML") {
+      my $db_file_content = cat $ref->{store_options}->{adapter_options}->{":file"};
+      my $db_file_ref = YAML::Load($db_file_content . "\n");
+      $ret = [ CORE::keys(%{ $db_file_ref }) ];
+    }
   };
 
   return $ret;
@@ -112,11 +126,17 @@ Rex::Commands::task("get_password", sub {
     if(ref $key eq "ARRAY") {
       $ret = {};
       for my $k (@{ $key }) {
-        $ret->{$k} = run "/usr/local/bin/trocla get '$k' $format";
+        $ret->{$k} = run "trocla get '$k' $format";
+        if($? != 0) {
+          die "Error running trocla.";
+        }
       }
     }
     else {
-      my $out = run "/usr/local/bin/trocla get '$key' $format";
+      my $out = run "trocla get '$key' $format";
+      if($? != 0) {
+        die "Error running trocla.";
+      }
       $ret = $out;
     }
 
