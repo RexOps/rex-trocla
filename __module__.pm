@@ -94,7 +94,8 @@ Rex::Commands::task("list_keys", sub {
 
   sudo sub {
     my $file_content = cat $file;
-    my $ref = YAML::Load($file_content . "\n");
+    my $ref;
+    eval { $ref = YAML::Load($file_content . "\n"); 1; } or do { die "Error parsing troclarc: $file.\nError:\n$@\n"; };
     if($ref->{store_options}->{adapter} eq ":Sequel") {
       my ($host, $port) = ($ref->{store_options}->{adapter_options}->{":db"} =~ m/:\/\/([^:]+):(\d+)/);
       my $user = $ref->{store_options}->{adapter_options}->{":user"};
